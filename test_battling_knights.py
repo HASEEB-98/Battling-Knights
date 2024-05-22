@@ -49,7 +49,7 @@ def test_process_moves():
     process_moves(moves, items, knights)
     assert knights['R'].position == (4, 2)
     assert knights['R'].item == items['A']
-    assert items['A'].equiped_by == knights['R']
+    assert items['A'].equiped_by == knights['R'].name
 
 def test_battle_resolution():
     items, knights = initialize_board()
@@ -106,6 +106,24 @@ def test_custom_moves_set_2():
         "yellow": [[0, 7], "LIVE", None, 1, 1],
         "Axe": [[0, 2], None],
         "Dagger": [[2, 5], None],
+        "Helmet": [[5, 2], None],
+        "MagicStaff": [[5, 5], None]
+    }
+    assert final_state == expected_state
+
+
+def test_custom_moves_set_3():
+    items, knights = initialize_board()
+    moves = ['Y:W', 'Y:W', 'Y:S', 'Y:S', 'Y:W', 'Y:W', 'Y:W']
+    process_moves(moves, items, knights)
+    final_state = final_state_to_json(items, knights)
+    expected_state = {
+        "red": [[0, 0], "LIVE", None, 1, 1],
+        "blue": [[7, 0], "LIVE", None, 1, 1],
+        "green": [[7, 7], "LIVE", None, 1, 1],
+        "yellow": [[2, 2], "LIVE", 'Axe', 1, 1],
+        "Axe": [[2, 2], 'YELLOW'],
+        "Dagger": [[2, 2], None],
         "Helmet": [[5, 2], None],
         "MagicStaff": [[5, 5], None]
     }

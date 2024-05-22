@@ -1,10 +1,13 @@
 {
     "red": [
+        [
+            0,
+            0
+        ],
+        "LIVE",
         null,
-        "DROWNED",
-        null,
-        0,
-        0
+        1,
+        1
     ],
     "blue": [
         [
@@ -28,25 +31,25 @@
     ],
     "yellow": [
         [
-            0,
-            7
+            2,
+            2
         ],
         "LIVE",
-        null,
+        "Axe",
         1,
         1
     ],
     "Axe": [
         [
-            0,
+            2,
             2
         ],
-        null
+        "YELLOW"
     ],
     "Dagger": [
         [
             2,
-            5
+            2
         ],
         null
     ],

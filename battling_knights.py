@@ -49,7 +49,7 @@ class Knight:
                 self.item.equiped_by = None
             
             self.item = item
-            item.equiped_by = self
+            item.equiped_by = self.name
 
     # un equip item, if knight is drowned or dead
     def un_equip_item(self):
