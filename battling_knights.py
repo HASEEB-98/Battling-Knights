@@ -1,8 +1,12 @@
 import json
 
+# global vairables:
 surprise_attack_power = 0.5
+item_priority = {'A': 3, 'M': 2, 'D': 1, 'H': 0}
+
 
 class Knight:
+    # initialisation of knight class
     def __init__(self, name, start_pos):
         self.name = name
         self.position = start_pos
@@ -11,6 +15,7 @@ class Knight:
         self.status = "LIVE"
         self.item = None
     
+    # function to move knight
     def move(self, direction):
         if self.status != "LIVE":
             return
@@ -25,27 +30,35 @@ class Knight:
         elif direction == 'W':
             self.position = (x, y - 1)
         
-        # Check if moved out of bounds
+        # Check if moved out of bounds i.e knight is drowned
         if not (0 <= self.position[0] < 8) or not (0 <= self.position[1] < 8):
             
             print(f"{self.name} drowned!")
             self.knight_died('DROWNED')
         
+         # update item position to knight position if knight owned any item
         elif self.item:
             self.item.position = self.position
 
+    # equip any item if knight doesn't have any item, or current item priority is low
     def equip_item(self, item):
-        item_priority = {'A': 3, 'M': 2, 'D': 1, 'H': 0}
+        # priority of each item
         if self.item is None or  item.priority > self.item.priority:
+            # Un equip previous item
+            if self.item:
+                self.item.equiped_by = None
+            
             self.item = item
             item.equiped_by = self
 
+    # un equip item, if knight is drowned or dead
     def un_equip_item(self):
         if self.item:
             self.item.equiped_by = None
             self.item = None
             
-
+    # this function acts as destructor whenever knight is drowned or dead
+    # it will drop any item which knight owned, and reset the attack and defense power, furthermore if knight is drowned then it will also change position of knight to nukk
     def knight_died(self, status):
         self.status = status
         self.attack = 0
@@ -54,6 +67,7 @@ class Knight:
             self.position = None
         self.un_equip_item()
 
+    # gives useful information regarding knight which is then used to store final state of board
     def get_info(self):
         return [
             list(self.position) if self.position else None,
@@ -63,14 +77,11 @@ class Knight:
             self.defense
         ]
 
-    def __str__(self):
-        item_name = self.item.name if self.item else "None"
-        position = self.position if self.position else "None"
         
 
 
-
 class Item:
+    # initialisation of item class
     def __init__(self, name, start_pos, attack, defense, priority):
         self.name = name
         self.position = start_pos
@@ -79,10 +90,12 @@ class Item:
         self.priority = priority
         self.equiped_by = None
 
+    # gives useful information regarding item which is then used to store final state of board
     def get_info(self):
         return [list(self.position) if self.position else None, self.equiped_by]
 
 
+# This function initialize the board with knights and items.
 def initialize_board():
     items = {
         'A': Item('Axe', (2, 2), 2, 0, 3),
@@ -100,6 +113,7 @@ def initialize_board():
 
     return items, knights
 
+# Input validation function to make sure every move in move.txt file is a valid move
 def are_moves_valid(moves):
 
     if not moves or moves[0] != "GAME-START" or moves[-1] != "GAME-END":
@@ -118,7 +132,7 @@ def are_moves_valid(moves):
 
     return True     
     
-
+# This function get moves from move.txt file and apply each move to respective knight mention in move
 def process_moves(moves, items, knights):
     
     for move in moves:
@@ -128,6 +142,7 @@ def process_moves(moves, items, knights):
         # Move the knight
         selected_knight.move(direction)
         
+        # If knight is not ALIVE then we don't need to apply any processing
         if selected_knight.status != "LIVE":
             continue
         
@@ -143,24 +158,32 @@ def process_moves(moves, items, knights):
                 resolve_battle(selected_knight, other_knight)
                 
         
-
+# function to resolve battle between 2 knights, one of them is 
 def resolve_battle(attacker, defender):
+    # calculate full attack power of attacker including baas attack value of knight, item attack power, if any equiped by knight, and surprise attack power
     full_attack = attacker.attack + (attacker.item.attack if attacker.item else 0) + surprise_attack_power
+
+    # calculate full defense power of defender including baas defense value of knight, item defesne power, if any equiped by knight
     full_defense = defender.defense + (defender.item.defense if defender.item else 0)
 
+    # Attacker kills the defender knight is it has more attack power then defender defense power
     if full_attack > full_defense:
         print(f"{attacker.name} kills {defender.name}!")
+        # Check if defender owned any item then propose this item to attacker
         if defender.item:
             attacker.equip_item(defender.item)
         defender.knight_died('DEAD')
 
+    # Defender defends the attack and kills the attacker knight is it has more defense power then attacker
     else:
         print(f"{defender.name} defends successfully against {attacker.name}!")
+        # Check if attacker owned any item then propose this item to defender
         if attacker.item:
             defender.equip_item(attacker.item)
         attacker.knight_died('DEAD')
 
 
+# function to convert final state of the board to json file
 def final_state_to_json(items, knights):
     state = {}
     for knight_object in knights.values():
@@ -172,17 +195,18 @@ def final_state_to_json(items, knights):
     return state
 
 def main():
-    
+    # check if input file exists or not
     try:
         with open('moves.txt', 'r') as f:
             moves = f.read().splitlines()
     except FileNotFoundError:
         print("Error: The file 'moves.txt' does not exist.")
-        return
+        return -1
 
+    # input validation
     if not are_moves_valid(moves):
         print("Error: The file 'moves.txt' does not contain valid set of moves.")
-        return
+        return -1
     
     moves = moves[1:-1]
     
@@ -194,6 +218,7 @@ def main():
     final_state = final_state_to_json(items, knights)
     
     print("\nFinal results after the battle is stored in final_state.json file successfully!.")
+    # store json to final_state.json file
     with open('final_state.json', 'w') as f:
         json.dump(final_state, f, indent=4)
 
